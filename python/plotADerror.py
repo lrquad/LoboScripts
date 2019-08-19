@@ -11,20 +11,18 @@ rcParams['axes.edgecolor']= (0.0,0.0,0.0)
 rcParams['axes.linewidth']= 2
 hfont = {'fontname':'Times New Roman'}
 
-folderpath = "testdata/"
+folderpath = "/media/ranluo/New Volume/DEMO/Siggraph2019/AD_test_results/"
 
-errors = np.loadtxt(folderpath+"ttmath_error.csv", delimiter=' ',unpack=True)
-xlabel_list = np.loadtxt(folderpath+"h_list.csv", delimiter=' ',unpack=True)
+errors = np.array(np.loadtxt(folderpath+"ttmath_error.csv", delimiter=',',unpack=True))
+xlabel_list = np.array(np.loadtxt(folderpath+"h_list.csv", delimiter=',',unpack=True))
 
-errors = np.log10(errors+1e-30)
-y_max = max(errors)
-y_min = min(errors)
+errors = np.log10(errors+1e-16)
+y_max = np.max(errors)
+y_min = np.min(errors)
 
 num = int(errors.shape[0]/2)
 
-xlabel_list_num = int(xlabel_list.shape[0]/2)
-
-print(num)
+xlabel_list_num = int(xlabel_list.shape[0])
 
 #num = 150
 
@@ -50,6 +48,9 @@ writer = Writer(fps=60, metadata=dict(artist='me'), bitrate=1800)
 #patch = patches.Rectangle((0, 0), 500, y_max/2, fc='y',color = 'Teal',alpha = 0.1,linestyle='dashed',hatch='/')
 #patch_text = plt.text(100, y_max/4,'Training range',rotation=0,size = 10)
 
+def format_e(n):
+    a = '%E' % n
+    return a.split('E')[0].rstrip('0').rstrip('.') + '.0E' + a.split('E')[1]
 
 def init():
     ax.set_xlim(0, num)
@@ -58,22 +59,31 @@ def init():
     ax.set_xlabel("Perturbation size",**hfont)
     ax.set_ylabel("Relative error ", **hfont)
 
-    ax.yaxis.set_major_locator(plt.MaxNLocator(5))
-    ax.set_yticklabels(('1.00E-14','1.00E-12','1.00E-08','1.00E-04','1.00E-00'),size = 10)
-    x_labels_tuples = ()
-    x_labels_num =17
+    y_labels_tuples = ()
+    y_labels_num = 18
+    ax.yaxis.set_major_locator(plt.MaxNLocator(y_labels_num))
 
-    ax.xaxis.set_major_locator(plt.MaxNLocator(x_labels_num-1))
-   
-    for i in range(0,x_labels_num):
-        x_labels_tuples = x_labels_tuples + ((xlabel_list[int(i/x_labels_num*xlabel_list_num)]),)
+    for i in range(0,y_labels_num):
+        y_value = i/(y_labels_num-1)*(y_max-y_min)+y_min
+        y_value = format_e(10**int(y_value))
+        y_labels_tuples = y_labels_tuples+(y_value,)
+    print(y_labels_tuples)
+    ax.set_yticklabels(y_labels_tuples,size = 10)
     
+    x_labels_tuples = ()
+    x_labels_num =16
+    ax.xaxis.set_major_locator(plt.MaxNLocator(x_labels_num+1))
+    for i in range(0,x_labels_num):
+        index = int(i/(x_labels_num-1)*(xlabel_list_num-1))
+        x_labels_tuples = x_labels_tuples + (format_e(xlabel_list[index]),)
+
+    print(x_labels_tuples)
     ax.set_xticklabels(x_labels_tuples,size = 15)
     
     plt.xticks(rotation=45)
 
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    #ax.spines['right'].set_visible(False)
+    #ax.spines['top'].set_visible(False)
 
     #ax.add_patch(patch)
 
